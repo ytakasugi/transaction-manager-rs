@@ -1,10 +1,6 @@
 use anyhow::{Context, Result, anyhow, ensure};
 use dotenv::dotenv;
-use sqlx::{
-    PgPool, Postgres,
-    postgres::{PgArguments, PgPoolOptions, PgRow},
-    query::Map,
-};
+use sqlx::{PgPool, postgres::PgPoolOptions};
 use std::{sync::Arc, time::Duration};
 use tokio::sync::OnceCell;
 
@@ -70,40 +66,6 @@ impl ConnectionPool {
     /// 内部で保持している SQLx の PostgreSQL プール参照を返します。
     pub fn get(&self) -> &PgPool {
         &self.pool
-    }
-
-    /// マッピング済みクエリを実行し、最大 1 行を返します。
-    ///
-    /// クエリ結果が空の場合は `Ok(None)` を返します。
-    pub async fn fetch_one<'a, U, F>(
-        &self,
-        query: Map<'a, Postgres, F, PgArguments>,
-    ) -> Result<Option<U>>
-    where
-        U: Send + Unpin,
-        F: FnMut(PgRow) -> std::result::Result<U, sqlx::Error> + Send + 'static,
-    {
-        let row = query
-            .fetch_optional(self.get())
-            .await
-            .context("Failed to fetch optional row")?;
-        Ok(row)
-    }
-
-    /// マッピング済みクエリを実行し、全行をベクタとして返します。
-    pub async fn fetch_all<'a, U, F>(
-        &self,
-        query: Map<'a, Postgres, F, PgArguments>,
-    ) -> Result<Vec<U>>
-    where
-        U: Send + Unpin,
-        F: FnMut(PgRow) -> std::result::Result<U, sqlx::Error> + Send + 'static,
-    {
-        let rows = query
-            .fetch_all(self.get())
-            .await
-            .context("Failed to fetch rows")?;
-        Ok(rows)
     }
 }
 

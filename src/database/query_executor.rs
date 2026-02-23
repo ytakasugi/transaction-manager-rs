@@ -1,17 +1,18 @@
 use anyhow::{Context, Result};
 use sqlx::{
     PgPool, Postgres, Transaction,
-    postgres::PgArguments,
+    postgres::{PgArguments, PgRow},
+    query::Map,
     query::Query,
 };
 
 #[derive(Clone)]
-pub struct TransactionExecutor {
+pub struct QueryExecutor {
     pool: PgPool,
 }
 
-impl TransactionExecutor {
-    /// 指定した接続プールを使うトランザクション実行器を作成します。
+impl QueryExecutor {
+    /// 指定した接続プールを使うクエリ実行器を作成します。
     pub fn new(pool: PgPool) -> Self {
         Self { pool }
     }
@@ -49,5 +50,39 @@ impl TransactionExecutor {
 
         tx.commit().await.context("Failed to commit transaction")?;
         Ok(())
+    }
+
+    /// マッピング済みクエリを実行し、最大 1 行を返します。
+    ///
+    /// クエリ結果が空の場合は `Ok(None)` を返します。
+    pub async fn fetch_one<'a, U, F>(
+        &self,
+        query: Map<'a, Postgres, F, PgArguments>,
+    ) -> Result<Option<U>>
+    where
+        U: Send + Unpin,
+        F: FnMut(PgRow) -> std::result::Result<U, sqlx::Error> + Send + 'static,
+    {
+        let row = query
+            .fetch_optional(&self.pool)
+            .await
+            .context("Failed to fetch optional row")?;
+        Ok(row)
+    }
+
+    /// マッピング済みクエリを実行し、全行をベクタとして返します。
+    pub async fn fetch_all<'a, U, F>(
+        &self,
+        query: Map<'a, Postgres, F, PgArguments>,
+    ) -> Result<Vec<U>>
+    where
+        U: Send + Unpin,
+        F: FnMut(PgRow) -> std::result::Result<U, sqlx::Error> + Send + 'static,
+    {
+        let rows = query
+            .fetch_all(&self.pool)
+            .await
+            .context("Failed to fetch rows")?;
+        Ok(rows)
     }
 }
