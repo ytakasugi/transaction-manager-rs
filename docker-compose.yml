@@ -1,0 +1,19 @@
+services:
+  database:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: 'database'
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    environment:
+      POSTGRES_PASSWORD: zippo
+      POSTGRES_USER: zippo
+      POSTGRES_HOST: zippo
+      POSTGRES_DB: zippo
+      TZ: Asia/Tokyo
+    restart: always
+volumes:
+  pgdata:

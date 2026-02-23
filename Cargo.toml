@@ -1,0 +1,10 @@
+[package]
+name = "database-manager-rs"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+anyhow = "1.0.102"
+dotenv = "0.15.0"
+sqlx = { version = "0.8.6", features = ["postgres", "runtime-tokio-native-tls"] }
+tokio = { version = "1.49.0", features = ["macros", "rt-multi-thread", "sync"] }
