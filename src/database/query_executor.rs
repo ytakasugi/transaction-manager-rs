@@ -1,4 +1,5 @@
 use anyhow::{Context, Result};
+use crate::database::connection_pool::SharedConnectionPool;
 use sqlx::{
     PgPool, Postgres, Transaction,
     postgres::{PgArguments, PgRow},
@@ -15,6 +16,11 @@ impl QueryExecutor {
     /// 指定した接続プールを使うクエリ実行器を作成します。
     pub fn new(pool: PgPool) -> Self {
         Self { pool }
+    }
+
+    /// 共有接続プールからクエリ実行器を作成します。
+    pub fn from_shared_pool(connection_pool: &SharedConnectionPool) -> Self {
+        Self::new(connection_pool.get().clone())
     }
 
     /// 単一クエリをトランザクション内で実行します。

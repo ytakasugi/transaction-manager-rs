@@ -8,7 +8,7 @@ use sqlx::{Row, postgres::PgRow};
 #[tokio::main]
 async fn main() -> Result<()> {
     let connection_pool = ConnectionPool::shared().await?;
-    let query_executor = QueryExecutor::new(connection_pool.get().clone());
+    let query_executor = QueryExecutor::from_shared_pool(&connection_pool);
 
     let worker_executor = query_executor.clone();
     let batch_executor = query_executor.clone();

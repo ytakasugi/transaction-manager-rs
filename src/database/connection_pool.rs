@@ -63,8 +63,8 @@ impl ConnectionPool {
         Ok(Self { pool })
     }
 
-    /// 内部で保持している SQLx の PostgreSQL プール参照を返します。
-    pub fn get(&self) -> &PgPool {
+    /// database モジュール内で利用する SQLx の PostgreSQL プール参照を返します。
+    pub(super) fn get(&self) -> &PgPool {
         &self.pool
     }
 }
